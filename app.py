@@ -52,18 +52,55 @@ def download(filename):
 def upload():
     if 'user' not in session:
         return redirect(url_for('login'))
-    file = request.files['file']
-    if file:
-        filepath = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
-        file.save(filepath)
+
+    file = request.files.get('file')
+    category = request.form.get('category')
+
+    if file and category:
+        save_path = os.path.join(app.config['UPLOAD_FOLDER'], category)
+        os.makedirs(save_path, exist_ok=True)  # Crée le dossier si nécessaire
+        file.save(os.path.join(save_path, file.filename))
+        print("✅ Fichier ajouté :", file.filename, "dans", category)
+    else:
+        print("❌ Fichier ou catégorie manquant.")
+
     return redirect(url_for('dashboard'))
 
-@app.route('/delete/<filename>', methods=['POST'])
+@app.route('/delete/<path:filename>', methods=['POST'])
 def delete(filename):
     if 'user' not in session:
         return redirect(url_for('login'))
     os.remove(os.path.join(app.config['UPLOAD_FOLDER'], filename))
     return redirect(url_for('dashboard'))
+
+@app.route('/add-category', methods=['POST'])
+def add_category():
+    if 'user' not in session:
+        return redirect(url_for('login'))
+
+    category_name = request.form.get('new_category')
+    if category_name:
+        folder_name = category_name.strip().lower().replace(' ', '_')
+        folder_path = os.path.join(app.config['UPLOAD_FOLDER'], folder_name)
+        os.makedirs(folder_path, exist_ok=True)
+        print(f"✅ Nouvelle section créée : {folder_name}")
+    return redirect(url_for('dashboard'))
+
+import shutil  # pour supprimer tout un dossier
+
+@app.route('/delete-category/<category>', methods=['POST'])
+def delete_category(category):
+    if 'user' not in session:
+        return redirect(url_for('login'))
+
+    folder_path = os.path.join(app.config['UPLOAD_FOLDER'], category)
+
+    if os.path.isdir(folder_path):
+        shutil.rmtree(folder_path)  # supprime le dossier et tout son contenu
+        print(f"🗑 Section supprimée : {category}")
+    return redirect(url_for('dashboard'))
+
+
 
 @app.route('/logout')
 def logout():

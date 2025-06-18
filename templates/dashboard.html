@@ -6,6 +6,10 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body class="bg-light">
+   <div class="mb-4">
+    <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" style="max-height: 100px;">
+</div>
+
     <div class="container mt-5">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2>Documents</h2>
@@ -29,9 +33,26 @@
         </div>
     </div>
 </form>
+<form action="{{ url_for('add_category') }}" method="POST" class="mb-5">
+    <div class="row g-2">
+        <div class="col-md-9">
+            <input type="text" name="new_category" class="form-control" placeholder="Nouvelle section (ex : Bourses)" required>
+        </div>
+        <div class="col-md-3">
+            <button type="submit" class="btn btn-info w-100">Ajouter une section</button>
+        </div>
+    </div>
+</form>
+
+
 
         {% for category, files in categories.items() %}
-    <h4 class="mt-5 text-primary">{{ category.replace('_', ' ').capitalize() }}</h4>
+<div class="d-flex justify-content-between align-items-center mt-5">
+<h4 class="mb-0" style="color: #ff7b00;">{{ category.replace('_', ' ').capitalize() }}</h4>
+    <form action="{{ url_for('delete_category', category=category) }}" method="POST" onsubmit="return confirm('Confirmer la suppression de la section : {{ category }} ? Cette action est irréversible.')">
+        <button class="btn btn-sm btn-outline-danger">🗑 Supprimer section</button>
+    </form>
+</div>
     <table class="table table-striped">
         <thead>
             <tr>
