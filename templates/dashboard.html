@@ -6,82 +6,115 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body class="bg-light">
-   <div class="mb-4">
-    <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" style="max-height: 100px;">
-</div>
+
+    <div class="mb-4">
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" style="max-height: 100px;">
+    </div>
 
     <div class="container mt-5">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <div class="alert alert-{{ category }} alert-dismissible fade show mt-3" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2>Documents</h2>
-            <a href="{{ url_for('logout') }}" class="btn btn-outline-danger">Déconnexion</a>
-        </div>
 
-        <form action="{{ url_for('upload') }}" method="POST" enctype="multipart/form-data" class="mb-4">
-    <div class="row g-2">
-        <div class="col-md-5">
-            <input type="file" name="file" class="form-control" required>
-        </div>
-        <div class="col-md-4">
-            <select name="category" class="form-select" required>
-                {% for cat in categories %}
-                    <option value="{{ cat }}">{{ cat.replace('_', ' ').capitalize() }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div class="col-md-3">
-            <button class="btn btn-success w-100">Ajouter</button>
-        </div>
-    </div>
-</form>
-<form action="{{ url_for('add_category') }}" method="POST" class="mb-5">
-    <div class="row g-2">
-        <div class="col-md-9">
-            <input type="text" name="new_category" class="form-control" placeholder="Nouvelle section (ex : Bourses)" required>
-        </div>
-        <div class="col-md-3">
-            <button type="submit" class="btn btn-info w-100">Ajouter une section</button>
-        </div>
-    </div>
-</form>
-
-
-
-        {% for category, files in categories.items() %}
-<div class="d-flex justify-content-between align-items-center mt-5">
-<h4 class="mb-0" style="color: #ff7b00;">{{ category.replace('_', ' ').capitalize() }}</h4>
-    <form action="{{ url_for('delete_category', category=category) }}" method="POST" onsubmit="return confirm('Confirmer la suppression de la section : {{ category }} ? Cette action est irréversible.')">
-        <button class="btn btn-sm btn-outline-danger">🗑 Supprimer section</button>
-    </form>
+            <div class="d-flex flex-column align-items-end">
+  <!-- Bouton déconnexion en haut à droite -->
+<div style="position: absolute; top: 20px; right: 30px; z-index: 1000;">
+  <a href="{{ url_for('logout') }}" class="btn btn-outline-danger">Déconnexion</a>
 </div>
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>Nom du fichier</th>
-                <th>Télécharger</th>
-                <th>Supprimer</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for file in files %}
-            <tr>
-                <td>{{ file }}</td>
-                <td>
-                    <a href="{{ url_for('download', filename=category + '/' + file) }}" class="btn btn-primary btn-sm">⬇️</a>
-                </td>
-                <td>
-                    <form action="{{ url_for('delete', filename=category + '/' + file) }}" method="POST" onsubmit="return confirm('Confirmer la suppression ?')">
-                        <button class="btn btn-danger btn-sm">🗑</button>
+
+
+                {% if session['role'] == 'admin' %}
+                    <a href="{{ url_for('add_user') }}" class="btn btn-outline-primary mb-2">➕ Ajouter utilisateur</a>
+                    <a href="{{ url_for('manage_users') }}" class="btn btn-outline-secondary mb-2">👥 Gérer les utilisateurs</a>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if session['role'] == 'admin' %}
+            <!-- Formulaire d'ajout de fichier -->
+            <form action="{{ url_for('upload') }}" method="POST" enctype="multipart/form-data" class="mb-4">
+                <div class="row g-2">
+                    <div class="col-md-5">
+                        <input type="file" name="file" class="form-control" required>
+                    </div>
+                    <div class="col-md-4">
+                        <select name="category" class="form-select" required>
+                            {% for cat in categories %}
+                                <option value="{{ cat }}">{{ cat.replace('_', ' ').capitalize() }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-success w-100">Ajouter</button>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Formulaire d'ajout de section -->
+            <form action="{{ url_for('add_category') }}" method="POST" class="mb-5">
+                <div class="row g-2">
+                    <div class="col-md-9">
+                        <input type="text" name="new_category" class="form-control" placeholder="Nouvelle section (ex : Bourses)" required>
+                    </div>
+                    <div class="col-md-3">
+                        <button type="submit" class="btn btn-info w-100">Ajouter une section</button>
+                    </div>
+                </div>
+            </form>
+        {% endif %}
+
+        <!-- Affichage des fichiers par section -->
+        {% for category, files in categories.items() %}
+            <div class="d-flex justify-content-between align-items-center mt-5">
+                <h4 class="mb-0" style="color: #ff7b00;">{{ category.replace('_', ' ').capitalize() }}</h4>
+
+                {% if session['role'] == 'admin' %}
+                    <form action="{{ url_for('delete_category', category=category) }}" method="POST" onsubmit="return confirm('Confirmer la suppression de la section : {{ category }} ? Cette action est irréversible.')">
+                        <button class="btn btn-sm btn-outline-danger">🗑 Supprimer section</button>
                     </form>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-{% endfor %}
+                {% endif %}
+            </div>
 
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Nom du fichier</th>
+                        <th>Télécharger</th>
+                        {% if session['role'] == 'admin' %}
+                            <th>Supprimer</th>
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for file in files %}
+                    <tr>
+                        <td>{{ file }}</td>
+                        <td>
+                            <a href="{{ url_for('download', filename=category + '/' + file) }}" class="btn btn-primary btn-sm">⬇️</a>
+                        </td>
+                        {% if session['role'] == 'admin' %}
+                        <td>
+                            <form action="{{ url_for('delete', filename=category + '/' + file) }}" method="POST" onsubmit="return confirm('Confirmer la suppression ?')">
+                                <button class="btn btn-danger btn-sm">🗑</button>
+                            </form>
+                        </td>
+                        {% endif %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endfor %}
     </div>
-
-    
 
 </body>
 </html>

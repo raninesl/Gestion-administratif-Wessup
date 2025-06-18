@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestion des utilisateurs</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+<div class="container mt-5 col-md-8">
+    <h3 class="mb-4">Utilisateurs</h3>
+
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Nom d'utilisateur</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr>
+                <td>{{ user }}</td>
+                <td>
+                    <form action="{{ url_for('delete_user') }}" method="POST" style="display:inline;">
+                        <input type="hidden" name="username" value="{{ user }}">
+                        <button class="btn btn-sm btn-danger" onclick="return confirm('Supprimer {{ user }} ?')">🗑 Supprimer</button>
+                    </form>
+<a href="{{ url_for('change_user_password', username=user) }}">
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <a href="{{ url_for('dashboard') }}" class="btn btn-secondary mt-3">Retour</a>
+</div>
+</body>
+</html>
